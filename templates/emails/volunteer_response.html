@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if accepted %}
+    <p style="background-color:#EAF7EE; border-left:4px solid #2E7D4F;
+              padding:12px; border-radius:4px;">
+      <strong>{{ volunteer_name }} accepted</strong> your invitation to
+      {{ reference_code }}.
+    </p>
+  {% else %}
+    <p style="background-color:#FDF3E7; border-left:4px solid #B8761F;
+              padding:12px; border-radius:4px;">
+      <strong>{{ volunteer_name }} declined</strong> your invitation to
+      {{ reference_code }}. You may want to invite someone else.
+    </p>
+  {% endif %}
+
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
+         style="margin:16px 0; border-collapse:collapse;">
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A; width:110px;">Incident</td>
+      <td style="padding:6px 0;"><strong>{{ reference_code }}</strong> - {{ emergency_type }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Severity</td>
+      <td style="padding:6px 0;">{{ severity }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Location</td>
+      <td style="padding:6px 0;">{{ location }}</td>
+    </tr>
+    {% if accepted and phone %}
+      <tr>
+        <td style="padding:6px 0; color:#5F5E5A;">Contact</td>
+        <td style="padding:6px 0;"><strong>{{ phone }}</strong></td>
+      </tr>
+    {% endif %}
+    {% if matched_skills %}
+      <tr>
+        <td style="padding:6px 0; color:#5F5E5A;">Skills</td>
+        <td style="padding:6px 0;">{{ matched_skills | join(', ') }}</td>
+      </tr>
+    {% endif %}
+  </table>
+
+  {% if response_note %}
+    <p style="color:#5F5E5A; margin-bottom:4px;">{{ volunteer_name }} said:</p>
+    <p style="background-color:#F1EFE8; padding:12px; border-radius:4px; margin-top:0;">
+      {{ response_note }}
+    </p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p>Hi {{ full_name }},</p>
+
+  <p>
+    You've been added to <strong>CrisisConnect</strong> as a responder
+    under <strong>{{ agency_name }}</strong>.
+  </p>
+
+  <p>
+    You can now log in to your CrisisConnect account using the credentials below:
+  </p>
+
+  <div style="background-color:#F1EFE8; padding:16px; border-radius:6px; margin:16px 0;">
+    <p style="margin:0 0 8px 0;">
+      <strong>Email:</strong> {{ email }}
+    </p>
+
+    <p style="margin:0;">
+      <strong>Temporary password:</strong> {{ temporary_password }}
+    </p>
+  </div>
+
+  <p>
+    Please keep your login credentials secure. You can change your password
+    from your account settings whenever you choose.
+  </p>
+
+  <p>
+    Welcome to CrisisConnect.
+  </p>
+{% endblock %}

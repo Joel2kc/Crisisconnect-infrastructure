@@ -1,0 +1,7 @@
+aws_region   = "eu-west-1"
+project_name = "crisisconnect"
+environment  = "staging"
+
+db_name     = "crisisconnect"
+db_username = "your_db_username"
+db_password = "your_secure_password"

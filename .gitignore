@@ -1,0 +1,16 @@
+.env
+.vscode
+venv
+.venv/
+.idea/
+.DS_Store
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.db
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+  <p>Hello {{ full_name }},</p>
+  <p>You have been dispatched to an incident.</p>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
+         style="margin:16px 0; border-collapse:collapse;">
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A; width:110px;">Reference</td>
+      <td style="padding:6px 0;"><strong>{{ reference_code }}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Type</td>
+      <td style="padding:6px 0;">{{ emergency_type }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Severity</td>
+      <td style="padding:6px 0;"><strong>{{ severity }}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Location</td>
+      <td style="padding:6px 0;">{{ location }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 0; color:#5F5E5A;">Occurred</td>
+      <td style="padding:6px 0;">{{ occurred_at }}</td>
+    </tr>
+  </table>
+
+  {% if hazards %}
+    <p style="background-color:#FDECEA; border-left:4px solid #C0392B;
+              padding:12px; border-radius:4px;">
+      <strong>Hazards reported at this scene:</strong><br />
+      {{ hazards | join(', ') }}
+    </p>
+  {% endif %}
+
+  <p style="color:#5F5E5A; margin-bottom:4px;">Reported as:</p>
+  <p style="background-color:#F1EFE8; padding:12px; border-radius:4px; margin-top:0;">
+    {{ description }}
+  </p>
+
+  <p>Open CrisisConnect to update your status as you respond.</p>
+{% endblock %}
