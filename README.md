@@ -1,137 +1,79 @@
-# CrisisConnect API
+🚀 Project Overview
+Crisis Connect is an emergency reporting, incident management, and agency coordination platform. During my internship at KodeCamp, I focused on the DevOps and cloud infrastructure side of the project, building scalable cloud architectures, setting up reliable CI/CD pipelines, containerizing services, and ensuring robust monitoring and troubleshooting workflows.
 
-Backend service for CrisisConnect, built with FastAPI. The project currently provides application startup, database initialization, request-rate-limiting configuration, and a reusable database-session dependency.
+🏗️ AWS Infrastructure & Architecture
+The infrastructure is provisioned and managed using Terraform, with application services deployed as Docker containers on AWS ECS Fargate.
 
-## Features
+VPC & Networking
+I established a secure and isolated networking foundation within AWS:
 
-- FastAPI application titled **CrisisConnect API**
-- SQLModel database engine managed through Alembic migrations
-- Database session dependency for route handlers
-- IP-based request rate limiting via SlowAPI
-- Environment-based database configuration
+VPC spanning public and private subnets across availability zones.
 
-## Requirements
+Internet Gateway & NAT Gateway to allow outbound internet access for private resources while shielding them from inbound threats.
 
-- Python 3.10 or later
-- A database supported by SQLAlchemy/SQLModel (SQLite is suitable for local development)
+Route Tables & Security Groups enforcing strict least-privilege traffic flow, keeping database instances securely inside private subnets.
 
-## Setup
+Compute & Load Balancing
+Amazon ECS Fargate: The backend API and informational frontend run as serverless container services, removing the operational overhead of managing underlying servers while enabling seamless deployments via CI/CD.
 
-1. Clone the repository and enter the project directory.
+Application Load Balancer (ALB): Sits in front of ECS services to handle incoming traffic, intelligently routing API traffic to the backend and web traffic to the frontend, backed by automated health checks.
 
-2. Create and activate a virtual environment:
+Amazon ECR: Stores version-controlled Docker images used by the ECS services.
 
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   ```
+Data, Storage & Secrets
+Amazon RDS PostgreSQL: Manages core application data, with schema migrations handled reliably via Alembic.
 
-   On Windows PowerShell:
+Amazon S3: Used for secure application file and document storage, integrated via fine-grained IAM permissions.
 
-   ```powershell
-   .venv\Scripts\Activate.ps1
-   ```
+AWS CloudWatch: Centralizes application and container logs for deep inspection during deployment troubleshooting and runtime error analysis.
 
-3. Install the project dependencies:
+AWS Secrets Manager: Secures sensitive runtime configurations (such as the Gemini API key used for AI-assisted incident triage) and injects them securely into ECS tasks at runtime.
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+🔄 CI/CD & Automation
+To eliminate manual deployment errors, I built automated CI/CD pipelines using GitHub Actions.
 
-4. Create a `.env` file in the project root and define the database URL:
+Backend & Frontend Deployment Flow
+Plaintext
+GitHub ---> GitHub Actions ---> Docker Build ---> Amazon ECR ---> Amazon ECS ---> Health Check
+The pipeline automates building container images, publishing them to ECR, updating the ECS task definitions, and verifying service health post-deployment.
 
-   ```env
-   DATABASE_URL=sqlite:///./crisisconnect.db
-   ```
+Mobile Delivery Workflow
+For the Crisis Connect Android mobile application, I configured an automated distribution pipeline to streamline testing:
 
-5. Start the development server:
+Plaintext
+Mobile Code ---> GitHub Actions ---> Android APK Build ---> Firebase App Distribution ---> Testers & Team Members
+This integration eliminated manual APK builds and ad-hoc file transfers, instantly delivering fresh builds to QA and team members upon code pushes.
 
-   ```bash
-   uvicorn main:app --reload
-   ```
+🛠️ Technology Stack
+Cloud & Infrastructure: AWS (ECS Fargate, ECR, ALB, VPC, RDS PostgreSQL, S3, CloudWatch, Secrets Manager, NAT Gateway), Terraform
 
-The API will be available at `http://127.0.0.1:8000`.
+Containerization & CI/CD: Docker, GitHub Actions, Firebase App Distribution
 
-## API documentation
+Application & Database: Python, FastAPI, PostgreSQL, Alembic, Gemini API
 
-Once the server is running, FastAPI provides interactive documentation at:
+Mobile Delivery: Android APK Build Pipelines
 
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- ReDoc: `http://127.0.0.1:8000/redoc`
+📂 Repository Structure
+The infrastructure code is modularized for maintainability across environments:
 
-## Project structure
+Plaintext
+infrastructure/
+└── terraform/
+    ├── modules/
+    │   ├── ecr/
+    │   ├── ecr-frontend/
+    │   ├── ecs/
+    │   ├── ecs-frontend/
+    │   ├── network/
+    │   └── s3/
+    │
+    └── environments/
+        └── staging/
+🔍 Key Engineering Challenges & Solutions
+Working through production hurdles provided hands-on experience in end-to-end debugging:
 
-```text
-.
-├── main.py                         # FastAPI app and startup configuration
-├── db/
-│   └── database.py                 # Database engine, initialization, sessions
-├── core/
-│   └── session_dependency.py       # Injected SQLModel session type
-├── rate_limiter/
-│   └── rate_limiter.py             # SlowAPI limiter configuration
-├── .env.example                    # Environment-variable template
-├── migrations/                     # Alembic migration environment and revisions
-├── alembic.ini                     # Alembic configuration
-└── requirements.txt                # Python dependencies
-```
+Container Port Mismatches: Traced discrepancies between the application's exposed port, Dockerfile directives, and ECS service definitions to restore successful load balancer communication.
 
-## Database sessions
+Database Migration Drift: Resolved synchronization issues where the staging database lagged behind advanced Alembic migration revisions by inspecting the migration chain and applying targeted updates.
 
-Use `sessionDep` when defining route handlers that need a SQLModel session:
-
-```python
-from fastapi import APIRouter
-from core.session_dependency import sessionDep
-
-router = APIRouter()
-
-@router.get("/example")
-def example(session: sessionDep):
-    return {"status": "ok"}
-```
-
-## Database migrations
-
-Alembic reads `DATABASE_URL` from `.env`, so the API and migration commands
-always target the same database. Run these commands from the project root:
-
-```bash
-# Generate a migration after adding or changing SQLModel models.
-alembic revision --autogenerate -m "describe the schema change"
-
-# Apply all pending migrations.
-alembic upgrade head
-
-# View the database's current migration revision.
-alembic current
-```
-
-Add each new model module to the import section in `migrations/env.py`; this
-registers its tables in `SQLModel.metadata`, allowing `--autogenerate` to
-detect schema changes. Do not use `SQLModel.metadata.create_all()` in the API
-once Alembic manages the schema.
-
-## Rate limiting
-
-The application uses SlowAPI with the client's remote IP address as the rate-limit key. Add limits to individual endpoints as they are implemented, for example:
-
-```python
-from fastapi import Request
-from rate_limiter.rate_limiter import limiter
-
-@router.get("/example")
-@limiter.limit("10/minute")
-def example(request: Request):
-    return {"status": "ok"}
-```
-
-## Configuration
-
-| Variable       | Description                                   | Example                                                      |
-| -------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| `DATABASE_URL` | SQLAlchemy-compatible database connection URL | `postgresql+psycopg2://name:password@localhost:5432/db-name` |
-
-## Notes
-
-The application imports `fastapi`, `sqlmodel`, `slowapi`, and `uvicorn` for local development. Ensure these packages are present in `requirements.txt` if they are not already installed in your environment.
+Observability: Leveraged CloudWatch log insights to diagnose container startup failures, IAM permission gaps, and internal network connectivity issues.
